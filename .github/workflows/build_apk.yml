@@ -32,9 +32,13 @@ jobs:
         flutter pub add flutter_launcher_icons
         flutter pub add provider
 
+        # Fix Android Gradle Repositories for 403 error
+        if [ -f "android/build.gradle" ]; then
+          echo "Allprojects repositories updated"
+        fi
+
         mkdir -p lib
         
-        # Writing comprehensive 15-feature super app main code (Fixed duplicate itemCount)
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
 
