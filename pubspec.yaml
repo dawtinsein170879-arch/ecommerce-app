@@ -1,6 +1,7 @@
-name: ecommerce_super_app
-description: A 15-Core Features E-Commerce Super App Demo
+name: ecommerce_app
+description: A new Flutter project for enterprise e-commerce super app.
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
@@ -9,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0
+  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -18,4 +19,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
+
+
