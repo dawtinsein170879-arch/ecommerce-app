@@ -34,7 +34,7 @@ jobs:
 
         mkdir -p lib
         
-        # Writing comprehensive 15-feature super app main code
+        # Writing comprehensive 15-feature super app main code (Fixed duplicate itemCount)
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
 
@@ -147,7 +147,6 @@ jobs:
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
-                  itemCount: features.length,
                   itemCount: features.length,
                   itemBuilder: (context, index) {
                     return Card(
@@ -263,4 +262,5 @@ jobs:
       with:
         name: app-release
         path: build/app/outputs/flutter-apk/app-release.apk
-        
+
+
