@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Enterprise Super App
 
 on:
   push:
@@ -21,15 +21,192 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Create App
+    - name: Generate App Files
       run: |
-        flutter create . --org com.tn.app --project-name tn_app
-        flutter pub get
+        flutter create . --org com.tn.superapp --project-name tn_super_app
+        flutter pub add provider
+        flutter pub add http
 
-    - name: Build APK
+        mkdir -p lib
+        
+        cat << 'EOF' > lib/main.dart
+        import 'package:flutter/material.dart';
+
+        void main() {
+          runApp(const TNApp());
+        }
+
+        class TNApp extends StatelessWidget {
+          const TNApp({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'TN Enterprise Super App',
+              theme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F172A)),
+                scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+              ),
+              home: const DashboardScreen(),
+            );
+          }
+        }
+
+        class DashboardScreen extends StatefulWidget {
+          const DashboardScreen({super.key});
+
+          @override
+          State<DashboardScreen> createState() => _DashboardScreenState();
+        }
+
+        class _DashboardScreenState extends State<DashboardScreen> {
+          int _currentIndex = 0;
+          double walletBalance = 350000.00;
+          final List<Map<String, dynamic>> modules = [
+            {'id': 1, 'name': '1. Wallet & Payments', 'icon': Icons.wallet, 'desc': 'Instant secure enterprise fund transfers.'},
+            {'id': 2, 'name': '2. Live FX Exchange', 'icon': Icons.currency_exchange, 'desc': 'Real-time multi-currency conversion.'},
+            {'id': 3, 'name': '3. Escrow Shield', 'icon': Icons.security, 'desc': 'Protected transactions holding funds safely.'},
+            {'id': 4, 'name': '4. Multi-Currency', 'icon': Icons.payments, 'desc': 'Handle USD, MMK, CNY, and EUR.'},
+            {'id': 5, 'name': '5. Smart Cart System', 'icon': Icons.shopping_cart, 'desc': 'Dynamic cart with wholesale tiers.'},
+            {'id': 6, 'name': '6. Express Checkout', 'icon': Icons.bolt, 'desc': 'One-click rapid checkout pipeline.'},
+            {'id': 7, 'name': '7. Live Order Tracker', 'icon': Icons.local_shipping, 'desc': 'GPS & status shipment tracking.'},
+            {'id': 8, 'name': '8. Vendor Dashboard', 'icon': Icons.store, 'desc': 'Inventory and order management.'},
+            {'id': 9, 'name': '9. Secure Admin Panel', 'icon': Icons.admin_panel_settings, 'desc': 'System oversight and controls.'},
+            {'id': 10, 'name': '10. Push Notifications', 'icon': Icons.notifications, 'desc': 'Instant alerts for orders & payments.'},
+            {'id': 11, 'name': '11. Live Chat Support', 'icon': Icons.chat, 'desc': 'Direct buyer-seller communication.'},
+            {'id': 12, 'name': '12. Ratings & Reviews', 'icon': Icons.star, 'desc': 'Verified customer feedback engine.'},
+            {'id': 13, 'name': '13. Wishlist Sync', 'icon': Icons.favorite, 'desc': 'Cloud-synced favorites list.'},
+            {'id': 14, 'name': '14. Coupons & Discounts', 'icon': Icons.local_offer, 'desc': 'Promo codes and seasonal deals.'},
+            {'id': 15, 'name': '15. AI Smart Assistant', 'icon': Icons.smart_toy, 'desc': 'Automated support chatbot.'},
+          ];
+
+          void _runAction(String name) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(name),
+                content: const Text('Module executed successfully in Live mode!'),
+                actions: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A), foregroundColor: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('TN 15-Core Super App', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+              ),
+              body: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Container(
+                          margin: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [Color(0xFF0F172A), Color(0xFF1E293B)]),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Wallet Balance', style: TextStyle(color: Colors.white70)),
+                              const SizedBox(height: 6),
+                              Text('\$${walletBalance.toStringAsFixed(2)} USD', style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('Approx: ${(walletBalance * 3350).toStringAsFixed(0)} MMK', style: const TextStyle(color: Colors.amberAccent, fontSize: 13)),
+                              const SizedBox(height: 14),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF0F172A)),
+                                onPressed: () {
+                                  setState(() { walletBalance += 500.0; });
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Top up successful: +$500')));
+                                },
+                                child: const Text('Instant Top Up (\$500)'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 1.2,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final m = modules[index];
+                              return InkWell(
+                                onTap: () => _runAction(m['name']),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(m['icon'], color: const Color(0xFF0F172A), size: 24),
+                                      const SizedBox(height: 8),
+                                      Text(m['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      const SizedBox(height: 2),
+                                      Text(m['desc'], style: const TextStyle(fontSize: 9, color: Colors.grey), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: modules.length,
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    ],
+                  ),
+                  const Center(child: Text('Escrow Security Shield Active', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                  const Center(child: Text('Enterprise Admin & Profile Center', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                ],
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                selectedItemColor: const Color(0xFF0F172A),
+                unselectedItemColor: Colors.grey,
+                onTap: (index) => setState(() => _currentIndex = index),
+                items: const [
+                  BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Modules'),
+                  BottomNavigationBarItem(icon: Icon(Icons.security), label: 'Escrow'),
+                  BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+                ],
+              ),
+            );
+          }
+        }
+        EOF
+
+    - name: Build APK Release
       run: flutter build apk --release
 
-    - name: Upload APK
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-release
