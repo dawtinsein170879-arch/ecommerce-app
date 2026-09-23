@@ -1,4 +1,4 @@
-name: Build Flutter APK
+name: Build Flutter APK with Custom Logo
 
 on:
   push:
@@ -21,11 +21,27 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Create complete Flutter project structure
+    - name: Create complete Flutter project structure & TN Logo
       run: |
         flutter create . --org com.ecommerce --project-name ecommerce_app --platforms android,ios
+        mkdir -p assets
+        
+        # Create a simple blue/white TN logo graphic using ImageMagick
+        convert -size 512x512 xc:blue -gravity center -pointsize 250 -fill white -annotate +0+0 "TN" assets/icon.png
+        
+        # Add flutter_launcher_icons to pubspec.yaml
+        echo "
+        flutter_launcher_icons:
+          image_path: \"assets/icon.png\"
+          android: true
+          ios: true
+        " >> pubspec.yaml
+
+        flutter pub get
+        flutter pub run flutter_launcher_icons:main
+
         mkdir -p lib
-        echo 'import "package:flutter/material.dart"; void main() => runApp(const MyApp()); class MyApp extends StatelessWidget { const MyApp({super.key}); @override Widget build(BuildContext context) { return MaterialApp(home: Scaffold(appBar: AppBar(title: const Text("15-Core Super App")), body: const Center(child: Text("Wallet & Escrow Ready")))); } }' > lib/main.dart
+        echo 'import "package:flutter/material.dart"; void main() => runApp(const MyApp()); class MyApp extends StatelessWidget { const MyApp({super.key}); @override Widget build(BuildContext context) { return MaterialApp(home: Scaffold(appBar: AppBar(title: const Text("TN Super App")), body: const Center(child: Text("Wallet & Escrow Ready")))); } }' > lib/main.dart
 
     - run: flutter pub get
 
