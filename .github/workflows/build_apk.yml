@@ -108,7 +108,6 @@ jobs:
             String name = feature['name'];
 
             if (id == 1 || id == 4 || id == 21) {
-              // Finance / Wallet related
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -129,7 +128,6 @@ jobs:
                 ),
               );
             } else if (id == 2) {
-              // Live FX
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -141,7 +139,6 @@ jobs:
                 ),
               );
             } else if (id == 3) {
-              // Escrow
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -156,10 +153,8 @@ jobs:
                 ),
               );
             } else if (id == 10) {
-              // Push Notifications
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Firebase Push Notification Test: Sent successfully!')));
             } else if (id == 11) {
-              // Live Chat
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -174,10 +169,8 @@ jobs:
                 ),
               );
             } else if (id == 16) {
-              // Biometric
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Biometric Authentication: Verified successfully!')));
             } else if (id == 17) {
-              // QR Code
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -196,7 +189,6 @@ jobs:
                 ),
               );
             } else if (id == 22) {
-              // RFQ
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -211,7 +203,6 @@ jobs:
                 ),
               );
             } else {
-              // Default action: Add to cart / Module activation
               setState(() {
                 if (!cartItems.any((item) => item['id'] == feature['id'])) {
                   cartItems.add(feature);
@@ -283,7 +274,6 @@ jobs:
               body: IndexedStack(
                 index: _currentIndex,
                 children: [
-                  // Tab 0: All 25 Modules with working execution
                   ListView(
                     padding: const EdgeInsets.all(12),
                     children: [
@@ -350,4 +340,13 @@ jobs:
                             ),
                           );
                         },
-       
+                      ),
+                    ],
+                  ),
+                  ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: wishlistItems.length,
+                    itemBuilder: (context, index) {
+                      final item = wishlistItems[index];
+                      return Card(
+        
