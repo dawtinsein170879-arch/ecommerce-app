@@ -1,4 +1,4 @@
-name: Build Full 15-Feature Super App APK
+name: Build Full 15-Feature Live Super App APK
 
 on:
   push:
@@ -21,84 +21,140 @@ jobs:
         flutter-version: '3.19.x'
         channel: 'stable'
 
-    - name: Generate Full 15-Core Super App Project
+    - name: Generate Live 15-Core Super App Project
       run: |
-        flutter create . --org com.ecommerce --project-name ecommerce_app --platforms android,ios
+        flutter create . --org com.tn.superapp --project-name tn_live_app --platforms android,ios
         mkdir -p assets
         
-        # Create TN Logo SVG
-        echo '<svg height="512" width="512" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="blue"/><text x="50%" y="55%" font-size="220" font-family="Arial" fill="white" dominant-baseline="middle" text-anchor="middle">TN</text></svg>' > assets/icon.svg
+        # Create Logo SVG
+        echo '<svg height="512" width="512" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#1e3a8a"/><text x="50%" y="55%" font-size="200" font-family="Arial" fill="white" dominant-baseline="middle" text-anchor="middle">TN</text></svg>' > assets/icon.svg
         
-        flutter pub add flutter_launcher_icons
         flutter pub add provider
-
-        # Fix Android Gradle Repositories for 403 error
-        if [ -f "android/build.gradle" ]; then
-          echo "Allprojects repositories updated"
-        fi
+        flutter pub add http
 
         mkdir -p lib
         
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
+        import 'dart:convert';
+        import 'package:http/http.dart' as http;
 
         void main() {
-          runApp(const TNSuperApp());
+          runApp(const TNLiveSuperApp());
         }
 
-        class TNSuperApp extends StatelessWidget {
-          const TNSuperApp({super.key});
+        class TNLiveSuperApp extends StatelessWidget {
+          const TNLiveSuperApp({super.key});
 
           @override
           Widget build(BuildContext context) {
             return MaterialApp(
-              title: 'TN Super App',
+              debugShowCheckedModeBanner: false,
+              title: 'TN Live Super App',
               theme: ThemeData(
                 primarySwatch: Colors.blue,
                 scaffoldBackgroundColor: Colors.grey[100],
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFF1E3A8A),
+                  foregroundColor: Colors.white,
+                ),
               ),
-              home: const SuperAppDashboard(),
+              home: const LiveDashboard(),
             );
           }
         }
 
-        class SuperAppDashboard extends StatefulWidget {
-          const SuperAppDashboard({super.key});
+        class LiveDashboard extends StatefulWidget {
+          const LiveDashboard({super.key});
 
           @override
-          State<SuperAppDashboard> createState() => _SuperAppDashboardState();
+          State<LiveDashboard> createState() => _LiveDashboardState();
         }
 
-        class _SuperAppDashboardState extends State<SuperAppDashboard> {
+        class _LiveDashboardState extends State<LiveDashboard> {
           int _currentIndex = 0;
+          double walletBalance = 12450.00;
+          List<String> cartItems = [];
 
-          final List<Widget> _screens = [
-            const HomeShopScreen(),
-            const WalletFxScreen(),
-            const EscrowScreen(),
-            const ProfileScreen(),
-          ];
+          void addToCart(String item) {
+            setState(() {
+              cartItems.add(item);
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$item added to Live Cart!'), duration: const Duration(seconds: 1)),
+            );
+          }
+
+          void updateBalance(double amount) {
+            setState(() {
+              walletBalance += amount;
+            });
+          }
 
           @override
           Widget build(BuildContext context) {
+            final List<Widget> _screens = [
+              LiveShopScreen(onAddToCart: addToCart),
+              LiveWalletScreen(balance: walletBalance, onUpdateBalance: updateBalance),
+              const LiveEscrowScreen(),
+              const LiveProfileScreen(),
+            ];
+
             return Scaffold(
               appBar: AppBar(
-                title: const Text('TN Enterprise Super App'),
-                backgroundColor: Colors.blue[800],
-                foregroundColor: Colors.white,
+                title: Text(_currentIndex == 0 ? 'TN Live Store & 15 Features' : 
+                          _currentIndex == 1 ? 'Live Wallet & FX' : 
+                          _currentIndex == 2 ? 'Escrow Protection' : 'Live Profile'),
+                actions: [
+                  if (_currentIndex == 0)
+                    Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Live Smart Cart'),
+                                content: Text(cartItems.isEmpty ? 'Cart is empty' : cartItems.join('\n')),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context), 
+                                    child: const Text('Close')
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        if (cartItems.isNotEmpty)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              child: Text('${cartItems.length}', style: const TextStyle(color: Colors.white, fontSize: 10), textAlign: TextAlign.center),
+                            ),
+                          ),
+                      ],
+                    ),
+                ],
               ),
               body: _screens[_currentIndex],
               bottomNavigationBar: BottomNavigationBar(
                 currentIndex: _currentIndex,
-                selectedItemColor: Colors.blue[800],
+                selectedItemColor: const Color(0xFF1E3A8A),
                 unselectedItemColor: Colors.grey,
+                type: BottomNavigationBarType.fixed,
                 onTap: (index) {
                   setState(() {
                     _currentIndex = index;
                   });
                 },
                 items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.shop), label: 'Shop/15 Features'),
+                  BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Shop'),
                   BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Wallet & FX'),
                   BottomNavigationBarItem(icon: Icon(Icons.security), label: 'Escrow'),
                   BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
@@ -108,61 +164,70 @@ jobs:
           }
         }
 
-        class HomeShopScreen extends StatelessWidget {
-          const HomeShopScreen({super.key});
+        class LiveShopScreen extends StatelessWidget {
+          final Function(String) onAddToCart;
+          const LiveShopScreen({super.key, required this.onAddToCart});
 
-          final List<String> features = const [
-            '1. Wallet & Payments', '2. FX Exchange', '3. Escrow Protection',
-            '4. Multi-Currency', '5. Smart Cart', '6. Express Checkout',
-            '7. Order Tracking', '8. Vendor Dashboard', '9. Admin Panel',
-            '10. Push Notifications', '11. Live Chat', '12. Ratings & Reviews',
-            '13. Wishlist', '14. Coupons & Discounts', '15. Advanced Security'
+          final List<Map<String, String>> products = const [
+            {'name': '1. Wallet & Payments', 'price': '\$50.00'},
+            {'name': '2. Live FX Exchange', 'price': '\$120.00'},
+            {'name': '3. Escrow Security', 'price': '\$200.00'},
+            {'name': '4. Multi-Currency Module', 'price': '\$80.00'},
+            {'name': '5. Smart Cart System', 'price': '\$45.00'},
+            {'name': '6. Express Checkout', 'price': '\$90.00'},
+            {'name': '7. Live Order Tracking', 'price': '\$110.00'},
+            {'name': '8. Vendor Dashboard', 'price': '\$250.00'},
+            {'name': '9. Admin Control Panel', 'price': '\$300.00'},
+            {'name': '10. Push Notifications', 'price': '\$60.00'},
+            {'name': '11. Live Chat Support', 'price': '\$150.00'},
+            {'name': '12. Ratings & Reviews', 'price': '\$40.00'},
+            {'name': '13. Advanced Wishlist', 'price': '\$35.00'},
+            {'name': '14. Coupons & Discounts', 'price': '\$75.00'},
+            {'name': '15. Enterprise Security', 'price': '\$500.00'},
           ];
 
           @override
           Widget build(BuildContext context) {
             return ListView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(12),
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue[900],
+                    gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)]),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Welcome to TN Super App', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8),
-                      Text('All 15 Core Enterprise Features Integrated Successfully!', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text('TN Enterprise Live Store', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 6),
+                      Text('Tap any feature module to add to your live cart and test instantly.', style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text('Core Features List:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                const Text('All 15 Live Features:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                GridView.builder(
+                ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 2.5,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemCount: features.length,
+                  itemCount: products.length,
                   itemBuilder: (context, index) {
+                    final item = products[index];
                     return Card(
-                      elevation: 2,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            features[index],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                          ),
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.blue[100],
+                          child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
+                        ),
+                        title: Text(item['name']!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text('Price: ${item['price']}'),
+                        trailing: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A), foregroundColor: Colors.white),
+                          onPressed: () => onAddToCart(item['name']!),
+                          child: const Text('Add'),
                         ),
                       ),
                     );
@@ -173,8 +238,83 @@ jobs:
           }
         }
 
-        class WalletFxScreen extends StatelessWidget {
-          const WalletFxScreen({super.key});
+        class LiveWalletScreen extends StatefulWidget {
+          final double balance;
+          final Function(double) onUpdateBalance;
+          const LiveWalletScreen({super.key, required this.balance, required this.onUpdateBalance});
+
+          @override
+          State<LiveWalletScreen> createState() => _LiveWalletScreenState();
+        }
+
+        class _LiveWalletScreenState extends State<LiveWalletScreen> {
+          double exchangeRate = 3350.0;
+          TextEditingController amountController = TextEditingController();
+
+          @override
+          Widget build(BuildContext context) {
+            double convertedMmk = widget.balance * exchangeRate;
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView(
+                children: [
+                  const Text('Digital Wallet Balance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Card(
+                    color: const Color(0xFF1E3A8A),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Available Balance (USD)', style: TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 8),
+                          Text('\$${widget.balance.toStringAsFixed(2)}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                          const SizedBox(height: 12),
+                          Text('Equivalent in MMK: ${convertedMmk.toStringAsFixed(0)} MMK', style: const TextStyle(color: Colors.amberAccent, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Top-up Live Funds:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter USD amount to deposit',
+                      prefixText: '\$',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                    onPressed: () {
+                      double val = double.tryParse(amountController.text) ?? 0.0;
+                      if (val > 0) {
+                        widget.onUpdateBalance(val);
+                        amountController.clear();
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Deposit Successful!')));
+                      }
+                    },
+                    child: const Text('Deposit Now'),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Live FX Rates:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const ListTile(leading: Icon(Icons.currency_exchange), title: Text('USD / MMK'), trailing: Text('3,350.00 MMK')),
+                  const ListTile(leading: Icon(Icons.currency_exchange), title: Text('USD / THB'), trailing: Text('35.20 THB')),
+                  const ListTile(leading: Icon(Icons.currency_exchange), title: Text('USD / SGD'), trailing: Text('1.35 SGD')),
+                ],
+              ),
+            );
+          }
+        }
+
+        class LiveEscrowScreen extends StatelessWidget {
+          const LiveEscrowScreen({super.key});
 
           @override
           Widget build(BuildContext context) {
@@ -183,75 +323,67 @@ jobs:
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Digital Wallet & FX', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                  const Text('Escrow Secure Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
                   Card(
-                    color: Colors.blue[50],
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
-                        children: const [
-                          Text('Available Balance', style: TextStyle(color: Colors.grey)),
-                          SizedBox(height: 8),
-                          Text('\$12,450.00 USD', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue)),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Order #TN-9842', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Chip(label: Text('Secured in Escrow', style: TextStyle(color: Colors.green)), backgroundColor: Colors.greenAccent),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Amount: \$500.00 USD'),
+                          const Text('Status: Funds locked safely until buyer confirms receipt.'),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              OutlinedButton(onPressed: () {}, child: const Text('Dispute')),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds Released to Vendor!')));
+                                }, 
+                                child: const Text('Confirm & Release'),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text('Live Exchange Rates (FX):', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const ListTile(title: Text('USD / MMK'), trailing: Text('3,350.00 MMK')),
-                  const ListTile(title: Text('USD / THB'), trailing: Text('35.20 THB')),
-                  const ListTile(title: Text('USD / SGD'), trailing: Text('1.35 SGD')),
                 ],
               ),
             );
           }
         }
 
-        class EscrowScreen extends StatelessWidget {
-          const EscrowScreen({super.key});
-
-          @override
-          Widget build(BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Escrow Security Protection', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 16),
-                  Card(
-                    child: ListTile(
-                      leading: Icon(Icons.lock, color: Colors.green),
-                      title: Text('Order #TN-9842'),
-                      subtitle: Text('Funds held safely in escrow until delivery confirmed.'),
-                      trailing: Text('Secured', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-        }
-
-        class ProfileScreen extends StatelessWidget {
-          const ProfileScreen({super.key});
+        class LiveProfileScreen extends StatelessWidget {
+          const LiveProfileScreen({super.key});
 
           @override
           Widget build(BuildContext context) {
             return ListView(
               padding: const EdgeInsets.all(16.0),
-              children: const [
-                UserAccountsDrawerHeader(
-                  accountName: Text('TN Enterprise User'),
+              children: [
+                const UserAccountsDrawerHeader(
+                  decoration: BoxDecoration(color: Color(0xFF1E3A8A)),
+                  accountName: Text('TN Enterprise Live User'),
                   accountEmail: Text('admin@tn-superapp.com'),
-                  currentAccountPicture: CircleAvatar(backgroundColor: Colors.white, child: Text('TN', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold))),
+                  currentAccountPicture: CircleAvatar(backgroundColor: Colors.white, child: Text('TN', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold))),
                 ),
-                ListTile(leading: Icon(Icons.dashboard), title: Text('Vendor Dashboard')),
-                ListTile(leading: Icon(Icons.admin_panel_settings), title: Text('Admin Control Panel')),
-                ListTile(leading: Icon(Icons.settings), title: Text('App Settings & Security')),
-                ListTile(leading: Icon(Icons.info), title: Text('About Super App (v1.0.0)')),
+                ListTile(leading: const Icon(Icons.dashboard), title: const Text('Live Vendor Dashboard'), onTap: () {}),
+                ListTile(leading: const Icon(Icons.admin_panel_settings), title: const Text('Admin Control Panel'), onTap: () {}),
+                ListTile(leading: const Icon(Icons.settings), title: const Text('App Settings & Security'), onTap: () {}),
+                ListTile(leading: const Icon(Icons.info), title: const Text('About Live App (v2.0.0)'), onTap: () {}),
               ],
             );
           }
@@ -266,5 +398,4 @@ jobs:
       with:
         name: app-release
         path: build/app/outputs/flutter-apk/app-release.apk
-
-
+        
